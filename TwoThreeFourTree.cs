@@ -46,11 +46,14 @@ namespace BTree
             {
                 //split  root and make new root
 
-                Node<T> newRoot = new();
-                
+                Root = SplitNode(Root);
+                Insert(Root, key);
             }
 
-            
+            else
+            {
+                Insert(Root, key);
+            }
         }
 
         private void SplitChildNode(Node<T> parent, Node<T> child)
