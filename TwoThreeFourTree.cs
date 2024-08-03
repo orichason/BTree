@@ -62,17 +62,33 @@ namespace BTree
             child.Keys.Remove(child.Keys[1]);
         }
 
-        private void Insert(Node<T> node, T key)
+        private void Insert(Node<T> parent, Node<T> child, T key)
         {
-            if (node.isLeaf)
+            if (child.isLeaf)
             {
-                node.Keys.Add(key);
-                node.Keys.Sort();
+                child.Keys.Add(key);
+                child.Keys.Sort();
             }
 
             else
             {
+                if (child.isFull)
+                {
+                    int direction = GetDirection(parent, key);
+                    var newParent = SplitNode(parent, direction, child);
 
+                    if (key.CompareTo(newParent.Keys[direction]) < 0)
+                    {
+                        Insert(SplitNode(parent, direction, child), newParent.Children[direction], key);
+                    }
+
+                    else
+                    {
+                        Insert(SplitNode(parent, direction, child), newParent.Children[direction + 1], key);
+                    }
+
+                    //finished here. Need to test splitting as well as base case for recursion
+                }
             }
         }
 
@@ -100,18 +116,28 @@ namespace BTree
         //    }
         //}
 
-        private Node<T> SplitNode(Node<T> node)
+        private Node<T> SplitNode(Node<T> parent, int index, Node<T> nodeToSplit)
         {
-            Node<T> parent = new(node.Keys[1]);
-            Node<T> leftChild = new(node.Keys[0]);
-            Node<T> rightChild = new(node.Keys[2]);
+            T rightKey = nodeToSplit.Keys[2];
+            T middleKey = nodeToSplit.Keys[1];
 
-            parent.Children.Add(leftChild);
-            parent.Children.Add(rightChild);
+            parent.Keys.Insert(index, middleKey);
+            parent.Children.Insert(index + 1, new Node<T>(rightKey));
 
             return parent;
         }
 
-        
+        private int GetDirection(Node<T> node, T key)
+        {
+            for (int i = 0; i < node.Count; i++)
+            {
+                if (key.CompareTo(node.Keys[i]) < 0)
+                {
+                    return i;
+                }
+            }
+
+            return node.Count;
+        }
     }
 }
