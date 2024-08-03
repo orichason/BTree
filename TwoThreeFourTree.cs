@@ -11,14 +11,13 @@ namespace BTree
     {
         internal class Node<T>
         {
-            public List<T> Keys { get; private set; }
-            public List<Node<T>> Children { get; private set; }
+            public List<T> Keys { get; private set; } = new List<T>();
+            public List<Node<T>> Children { get; private set; } = new List<Node<T>>();
 
 
             public Node()
             {
-                Keys = new List<T>();
-                Children = new List<Node<T>>();
+
             }
 
             public Node(T key)
@@ -35,86 +34,77 @@ namespace BTree
         public Node<T> Root { get; private set; }
 
         int count;
+        bool rootSplit;
         public TwoThreeFourTree()
         {
+            Root = new();
+            rootSplit = false;
             count = 0;
         }
 
         public void Insert(T key)
         {
+            Node<T> current = Root;
             if (Root.isFull)
             {
                 //split  root and make new root
+                SplitRoot();
+                rootSplit = true;
+            }
 
-                Root = SplitNode(Root);
-                Insert(Root, key);
+            if (rootSplit)
+            {
+                int direction = GetDirection(Root, key);
+                Insert(Root, Root.Children[direction], key);
             }
 
             else
             {
-                Insert(Root, key);
+                Insert(Root, current, key);
+
+                current.Keys.Add(key);
+                current.Keys.Sort();
+
             }
         }
-
-        private void SplitChildNode(Node<T> parent, Node<T> child)
+        private Node<T> Insert(Node<T> parent, Node<T> child, T key)
         {
-            parent.Keys.Add(child.Keys[1]);
-            child.Keys.Remove(child.Keys[1]);
-        }
+            if (child.Keys.Count == 0) return child;
 
-        private void Insert(Node<T> parent, Node<T> child, T key)
-        {
-            if (child.isLeaf)
-            {
-                child.Keys.Add(key);
-                child.Keys.Sort();
-            }
+            //if (child.isLeaf && rootSplit == false)
+            //{
+            //    child.Keys.Add(key);
+            //    child.Keys.Sort();
+            //}
 
-            else
+
+            int direction = GetDirection(parent, key);
+
+            if (child.isFull)
             {
-                if (child.isFull)
+                var newParent = SplitNode(parent, direction, child);
+
+                if (key.CompareTo(newParent.Keys[direction]) < 0)
                 {
-                    int direction = GetDirection(parent, key);
-                    var newParent = SplitNode(parent, direction, child);
-
-                    if (key.CompareTo(newParent.Keys[direction]) < 0)
-                    {
-                        Insert(SplitNode(parent, direction, child), newParent.Children[direction], key);
-                    }
-
-                    else
-                    {
-                        Insert(SplitNode(parent, direction, child), newParent.Children[direction + 1], key);
-                    }
-
-                    //finished here. Need to test splitting as well as base case for recursion
+                    Insert(SplitNode(parent, direction, child), newParent.Children[direction], key);
                 }
+
+                else
+                {
+                    Insert(SplitNode(parent, direction, child), newParent.Children[direction + 1], key);
+                }
+
+                //finished here. Need to test splitting as well as base case for recursion
             }
+
+            else
+            {
+                Insert(parent, parent.Children[direction], key);
+            }
+
+
+            return child;
         }
-
-
-        private void AddToNode(Node<T> node, T key)
-        {
-            node.Keys.Add(key);
-        }
-
-        //private void SortNode(ref Node<T> node)
-        //{
-        //    //Bubble sort
-
-        //    for (int i = 0; i < node.Count; i++)
-        //    {
-        //        for (int j = i + 1; j < node.Count; j++)
-        //        {
-        //            if (node.Keys[i].CompareTo(node.Keys[j]) > 0)
-        //            {
-        //                T temp = node.Keys[i];
-        //                node.Keys[i] = node.Keys[j];
-        //                node.Keys[j] = temp;
-        //            }
-        //        }
-        //    }
-        //}
 
         private Node<T> SplitNode(Node<T> parent, int index, Node<T> nodeToSplit)
         {
@@ -125,6 +115,19 @@ namespace BTree
             parent.Children.Insert(index + 1, new Node<T>(rightKey));
 
             return parent;
+        }
+
+        private void SplitRoot()
+        {
+            T leftKey = Root.Keys[0];
+            T rightKey = Root.Keys[2];
+            T middleKey = Root.Keys[1];
+
+            Node<T> newRoot = new(middleKey);
+            newRoot.Children.Add(new Node<T>(leftKey));
+            newRoot.Children.Add(new Node<T>(rightKey));
+
+            Root = newRoot;
         }
 
         private int GetDirection(Node<T> node, T key)

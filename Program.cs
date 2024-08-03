@@ -4,7 +4,18 @@
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            TwoThreeFourTree<char> BTree = new();
+
+            BTree.Insert('m');
+            BTree.Insert('c');
+            BTree.Insert('k');
+            BTree.Insert('b');
+            BTree.Insert('l');
+            BTree.Insert('n');
+            BTree.Insert('o');
+
+
+            ;
         }
     }
 }
