@@ -13,8 +13,12 @@
             BTree.Insert('l');
             BTree.Insert('n');
             BTree.Insert('o');
+            BTree.Insert('h');
+            BTree.Insert('a');
+            BTree.Insert('p');
+            BTree.Insert('z');
 
-
+            TwoThreeFourTree<char>.Node foundO = BTree.Search('x');
             ;
         }
     }
