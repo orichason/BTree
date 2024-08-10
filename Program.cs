@@ -17,8 +17,11 @@
             BTree.Insert('a');
             BTree.Insert('p');
             BTree.Insert('z');
+            BTree.Insert('z');
+            BTree.Insert('x');
 
-            TwoThreeFourTree<char>.Node foundO = BTree.Search('x');
+
+            TwoThreeFourTree<char>.Node foundO = BTree.Search('a');
             ;
         }
     }

@@ -35,11 +35,9 @@ namespace BTree
         public Node Root { get; private set; }
 
         public int Count { get; private set; }
-        bool rootSplit;
         public TwoThreeFourTree()
         {
             Root = new();
-            rootSplit = false;
             Count = 0;
         }
 
@@ -56,7 +54,12 @@ namespace BTree
 
             int direction = GetDirection(key, value);
 
-            return Search(key.Children[direction], value);
+            if (key.isLeaf)
+            {
+                return null;
+            }
+
+            return Search(key.Children[direction], value); //fix for nodes that dont exist
         }
 
         private bool FoundKey(Node keys, T key)
@@ -65,32 +68,26 @@ namespace BTree
         }
         public bool Insert(T value)
         {
+
             if (Root.isFull)
             {
-                if (rootSplit)
-                {
-                    SplitRoot(false);
-                }
-
-                else
-                {
-                    SplitRoot(true);
-                    rootSplit = true;
-                }
+                var newRoot = new Node();
+                newRoot.Children.Add(Root);
+                Root = SplitNode(newRoot, 0, Root);
             }
 
-            if (!rootSplit)
+            else if (!Root.isFull && Root.isLeaf)
             {
                 Root.Keys.Add(value);
                 Root.Keys.Sort();
+                Count++;
+                return true;
             }
 
-            else
-            {
-                int direction = GetDirection(Root, value);
-                Insert(Root, Root.Children[direction], value);
+            int direction = GetDirection(Root, value);
 
-            }
+            Insert(Root, Root.Children[direction], value);
+
             Count++;
             return true;
         }
@@ -125,14 +122,11 @@ namespace BTree
                 }
             }
 
-
             else
             {
-                int direction = GetDirection(parent, key);
+                int direction = GetDirection(child, key);
 
-                parent = parent.Children[direction];
-
-                Insert(parent, parent.Children[direction], key);
+                Insert(child, child.Children[direction], key);
             }
 
             return parent;
@@ -140,15 +134,27 @@ namespace BTree
 
         private Node SplitNode(Node parent, int index, Node nodeToSplit)
         {
-            T rightKey = nodeToSplit.Keys[2];
+            T leftKey = nodeToSplit.Keys[0];
             T middleKey = nodeToSplit.Keys[1];
+            T rightKey = nodeToSplit.Keys[2];
 
             parent.Keys.Insert(index, middleKey);
-            nodeToSplit.Keys.Remove(middleKey);
-            nodeToSplit.Keys.Remove(rightKey);
+            parent.Children.RemoveAt(index); //remove nodeToSplit
 
-            parent.Children.Insert(index + 1, new Node(rightKey));
+            var newLeftChild = new Node(leftKey);
+            parent.Children.Insert(index, newLeftChild);
 
+            var newRightChild = new Node(rightKey);
+            parent.Children.Insert(index + 1, newRightChild);
+
+            if (!nodeToSplit.isLeaf)
+            {
+                newLeftChild.Children.Add(nodeToSplit.Children[0]);
+                newLeftChild.Children.Add(nodeToSplit.Children[1]);
+
+                newRightChild.Children.Add(nodeToSplit.Children[2]);
+                newRightChild.Children.Add(nodeToSplit.Children[3]);
+            }
             return parent;
         }
 
@@ -165,20 +171,6 @@ namespace BTree
             {
                 newRoot.Children.Add(new Node(leftKey));
                 newRoot.Children.Add(new Node(rightKey));
-
-                Root = newRoot;
-            }
-
-            else
-            {
-                newRoot.Children.Add(leftChild);
-                leftChild.Children.Add(Root.Children[0]);
-                leftChild.Children.Add(Root.Children[1]);
-
-                Node rightChild = new(rightKey);
-                newRoot.Children.Add(rightChild);
-                rightChild.Children.Add(Root.Children[2]);
-                rightChild.Children.Add(Root.Children[3]);
 
                 Root = newRoot;
             }
