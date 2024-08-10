@@ -93,40 +93,37 @@ namespace BTree
         }
         private Node Insert(Node parent, Node child, T key)
         {
-
-            if (child.isLeaf)
+            if (child.isFull)
             {
-                if (child.isFull)
+                int direction = GetDirection(parent, key);
+
+                var newParent = SplitNode(parent, direction, child);
+
+                if (key.CompareTo(newParent.Keys[direction]) < 0)
                 {
-                    int direction = GetDirection(parent, key);
-
-                    var newParent = SplitNode(parent, direction, child);
-
-                    if (key.CompareTo(newParent.Keys[direction]) < 0)
-                    {
-                        Insert(newParent, newParent.Children[direction], key);
-                    }
-
-                    else
-                    {
-                        Insert(newParent, newParent.Children[direction + 1], key);
-                    }
+                    Insert(newParent, newParent.Children[direction], key);
                 }
 
                 else
                 {
-                    child.Keys.Add(key);
-                    child.Keys.Sort();
-
-                    return child;
+                    Insert(newParent, newParent.Children[direction + 1], key);
                 }
+
+                return newParent;
+            }
+
+            int childDirection = GetDirection(child, key);
+
+            if (child.isLeaf)
+            {
+                child.Keys.Insert(childDirection, key);
+
+                return child;
             }
 
             else
             {
-                int direction = GetDirection(child, key);
-
-                Insert(child, child.Children[direction], key);
+                Insert(child, child.Children[childDirection], key);
             }
 
             return parent;

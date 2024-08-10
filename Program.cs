@@ -19,6 +19,8 @@
             BTree.Insert('z');
             BTree.Insert('z');
             BTree.Insert('x');
+            BTree.Insert('y');
+            BTree.Insert('y');
 
 
             TwoThreeFourTree<char>.Node foundO = BTree.Search('a');
